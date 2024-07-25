@@ -14,6 +14,10 @@ const popupClose = newCard.querySelector(".popup__close");
 const addCardForm = newCard.querySelector(".popup__form");
 const saveButton = addCardForm.querySelector(".popup__button");
 
+// @todo: Функция удаления карточки
+
+const deleteCard = (e) => e.target.closest(".card").remove();
+
 // @todo: Функция создания карточки
 
 const addNewCard = (e) => {
@@ -21,29 +25,41 @@ const addNewCard = (e) => {
   const name = addCardForm.querySelector(".popup__input_type_card-name");
   const image = addCardForm.querySelector(".popup__input_type_url");
 
-  multiply({ name: name.value, link: image.value });
+  const cardElement = createCard(
+    { name: name.value, link: image.value },
+    deleteCard
+  );
+  cardsList.prepend(cardElement);
   newCard.classList.remove("popup_is-opened");
 
   name.value = "";
   image.value = "";
 };
 
-// @todo: Функция удаления карточки
-
-const delCard = (e) => e.target.parentElement.remove();
-
 // @todo: Вывести карточки на страницу
 
-const multiply = (card) => {
+function createCard(item, handleDelete) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
+  const cardImage = cardElement.querySelector(".card__image");
   const delButton = cardElement.querySelector(".card__delete-button");
-  cardElement.querySelector(".card__image").src = card.link;
-  cardElement.querySelector(".card__title").textContent = card.name;
-  delButton.addEventListener("click", delCard);
-  cardsList.append(cardElement);
-};
 
-initialCards.forEach(multiply);
+  cardImage.src = item.link;
+  cardImage.alt = item.name;
+  cardElement.querySelector(".card__title").textContent = item.name;
+
+  delButton.addEventListener("click", handleDelete);
+
+  return cardElement;
+}
+
+// Инициализация карточек
+
+initialCards.forEach((item) => {
+  const cardElement = createCard(item, deleteCard);
+  cardsList.append(cardElement);
+});
+
+// Обработчики событий
 
 addButton.addEventListener("click", (e) =>
   newCard.classList.add("popup_is-opened")

@@ -1,4 +1,7 @@
-import { cardsList, cardForm, popupNewCard } from "../index.js";
+// DOM узлы
+
+export const cardsList = document.querySelector(".places__list");
+export const cardForm = document.forms["new-place"];
 
 // Темплейт карточки
 
@@ -20,7 +23,7 @@ export const addLike = (e) => {
 
 // Вывод карточки на страницу
 
-export function createCard(item, handleDelete, handleLike) {
+export function createCard(item, handleDelete, handleLike, openImage) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const cardImage = cardElement.querySelector(".card__image");
   const delButton = cardElement.querySelector(".card__delete-button");
@@ -32,28 +35,7 @@ export function createCard(item, handleDelete, handleLike) {
 
   delButton.addEventListener("click", handleDelete);
   likeButton.addEventListener("click", handleLike);
+  cardImage.addEventListener("click", openImage);
 
   return cardElement;
 }
-
-// Создание карточки
-
-export const addNewCard = (e) => {
-  e.preventDefault();
-
-  const name = cardForm.elements["place-name"];
-  const image = cardForm.elements["link"];
-
-  if (name.value && image.value) {
-    const cardElement = createCard(
-      { name: name.value, link: image.value },
-      deleteCard,
-      addLike
-    );
-    cardsList.prepend(cardElement);
-    popupNewCard.classList.remove("popup_is-opened");
-
-    name.value = "";
-    image.value = "";
-  }
-};

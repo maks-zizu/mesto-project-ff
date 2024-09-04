@@ -1,8 +1,3 @@
-// DOM узлы
-
-export const cardsList = document.querySelector(".places__list");
-export const cardForm = document.forms["new-place"];
-
 // Темплейт карточки
 
 const cardTemplate = document.querySelector("#card-template").content;

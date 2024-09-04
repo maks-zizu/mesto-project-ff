@@ -1,17 +1,17 @@
 import "./pages/index.css";
-import {
-  addLike,
-  cardForm,
-  cardsList,
-  createCard,
-  deleteCard,
-} from "./components/card.js";
+import { addLike, createCard, deleteCard } from "./components/card.js";
 import { initialCards } from "./components/data.js";
 import { openModal, closeModal } from "./components/modal.js";
 
 // DOM узлы
 
 // card
+export const cardsList = document.querySelector(".places__list");
+export const cardForm = document.forms["new-place"];
+
+const placeName = cardForm.elements["place-name"];
+const link = cardForm.elements["link"];
+
 export const addButton = document.querySelector(".profile__add-button");
 export const popupNewCard = document.querySelector(".popup_type_new-card");
 popupNewCard.classList.add("popup_is-animated");
@@ -72,11 +72,8 @@ export const openImage = (e) => {
 export const addNewCard = (e) => {
   e.preventDefault();
 
-  const name = cardForm.elements["place-name"];
-  const image = cardForm.elements["link"];
-
   const cardElement = createCard(
-    { name: name.value, link: image.value },
+    { name: placeName.value, link: link.value },
     deleteCard,
     addLike,
     openImage
@@ -84,8 +81,8 @@ export const addNewCard = (e) => {
   cardsList.prepend(cardElement);
   closeModal(popupNewCard);
 
-  name.value = "";
-  image.value = "";
+  placeName.value = "";
+  link.value = "";
 };
 
 // Инициализация карточек

@@ -15,6 +15,7 @@ export const closeModal = (popup) => {
 // Закрытие по нажатию на Escape
 
 export const handleEscClose = (event) => {
+  event.stopPropagation();
   if (event.key === "Escape") {
     const openedPopup = document.querySelector(".popup_is-opened");
     if (openedPopup) closeModal(openedPopup);

@@ -10,6 +10,33 @@
   background-image: url("../../../images/avatar.jpg");
 }
 
+.profile__image {
+  position: relative;
+  cursor: pointer;
+}
+
+.profile__image:hover .profile__avatar-edit {
+  display: block;
+}
+
+.profile__avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  padding: 47px;
+  background: rgba(0, 0, 0, 0.5);
+  background-size: cover;
+  background-position: center;
+  display: none;
+}
+
+.profile__avatar-edit-icon {
+  width: 24px;
+  height: 24px;
+}
+
 @media screen and (max-width: 740px) {
   .profile__image {
     margin: 0 10px 0 0;

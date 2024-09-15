@@ -1,7 +1,15 @@
 import "./pages/index.css";
-import { addLike, createCard, deleteCard } from "./components/card.js";
-import { initialCards } from "./components/data.js";
+import { handleLike, createCard } from "./components/card.js";
 import { openModal, closeModal } from "./components/modal.js";
+import { clearValidation, enableValidation } from "./components/validation.js";
+import {
+  deleteCard,
+  getInitialCards,
+  getUser,
+  patchUser,
+  postCard,
+  updateAvatar,
+} from "./components/api.js";
 
 // DOM узлы
 
@@ -37,29 +45,98 @@ export const profileTitle = profile.querySelector(".profile__title");
 export const profileDescription = profile.querySelector(
   ".profile__description"
 );
+const profileImage = profile.querySelector(".profile__image");
 
 const name = profileForm.elements["name"];
 const description = profileForm.elements["description"];
 
+// элемент попапа для удаления карточки
+const popupConfirm = document.querySelector(".popup_type_confirm");
+const confirmButton = popupConfirm.querySelector(".popup__button_confirm");
+
+// avatar
+const avatarForm = document.forms["avatar-form"];
+const avatarInput = avatarForm.elements["avatar-link"];
+const avatarPopup = document.querySelector(".popup_type_avatar");
+
+// Функция для изменения текста кнопки во время загрузки
+const renderLoading = (
+  isLoading,
+  buttonElement,
+  loadingText = "Сохранение..."
+) => {
+  if (isLoading) buttonElement.textContent = loadingText;
+  else buttonElement.textContent = buttonElement.dataset.defaultText;
+};
+
+// Открытие попапа для обновления аватара
+profileImage.addEventListener("click", () => {
+  clearValidation(avatarForm, validationConfig);
+  openModal(avatarPopup);
+});
+
+// Отправка формы для обновления аватара
+avatarForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  renderLoading(true, saveButton);
+  updateAvatar(avatarInput.value)
+    .then((data) => {
+      profileImage.style.backgroundImage = `url(${data.avatar})`;
+      closeModal(avatarPopup);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      renderLoading(false, saveButton);
+    });
+});
+
 // Заполнение формы профиля
 
-export const completeForm = () => {
+const completeForm = () => {
   name.value = profileTitle.textContent;
   description.value = profileDescription.textContent;
 };
 
+// Удалить карточку
+
+let cardToDelete = null;
+let cardElementToDelete = null;
+
+// Функция для открытия попапа подтверждения удаления
+const openDeletePopup = (cardId, cardElement) => {
+  cardToDelete = cardId;
+  cardElementToDelete = cardElement;
+  openModal(popupConfirm);
+};
+
 // Редактирвоание профиля
 
-export const editProfile = (e) => {
+const editProfile = (e) => {
   e.preventDefault();
-  profileTitle.textContent = name.value;
-  profileDescription.textContent = description.value;
-  closeModal(popupProfile);
+  renderLoading(true, saveButton);
+  const updateProfile = patchUser({
+    name: name.value,
+    about: description.value,
+  });
+  updateProfile
+    .then((data) => {
+      profileTitle.textContent = data.name;
+      profileDescription.textContent = data.about;
+      closeModal(popupProfile);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      renderLoading(false, saveButton);
+    });
 };
 
 // Открытие попапа с картинкой
 
-export const openImage = (e) => {
+const openImage = (e) => {
   e.stopPropagation();
   if (!e.target.classList.contains("card__image")) return;
   caption.textContent = e.target.alt;
@@ -69,39 +146,97 @@ export const openImage = (e) => {
 
 // Создание карточки
 
-export const addNewCard = (e) => {
+const addNewCard = (e) => {
   e.preventDefault();
+  renderLoading(true, saveButton);
+  postCard({ name: placeName.value, link: link.value })
+    .then((data) => {
+      const cardElement = createCard(
+        data,
+        data.owner._id,
+        openDeletePopup,
+        handleLike,
+        openImage
+      );
 
-  const cardElement = createCard(
-    { name: placeName.value, link: link.value },
-    deleteCard,
-    addLike,
-    openImage
-  );
-  cardsList.prepend(cardElement);
-  closeModal(popupNewCard);
+      cardsList.prepend(cardElement);
+      closeModal(popupNewCard);
 
-  placeName.value = "";
-  link.value = "";
+      placeName.value = "";
+      link.value = "";
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      renderLoading(false, saveButton);
+    });
 };
 
 // Инициализация карточек
 
-initialCards.forEach((item) => {
-  const cardElement = createCard(item, deleteCard, addLike, openImage);
-  cardsList.append(cardElement);
+const initialCardsList = (initialCards, userId) =>
+  initialCards.forEach((item) => {
+    const cardElement = createCard(
+      item,
+      userId,
+      openDeletePopup,
+      handleLike,
+      openImage
+    );
+    cardsList.append(cardElement);
+  });
+
+// Инициализация профиля
+let userId = null;
+
+// Загрузка данных пользователя и карточек
+
+Promise.all([getUser(), getInitialCards()])
+  .then(([userData, cards]) => {
+    // Сохраняем данные пользователя
+    profileTitle.textContent = userData.name;
+    profileDescription.textContent = userData.about;
+    profileImage.style.backgroundImage = `url(${userData.avatar})`;
+    userId = userData._id; // Сохраняем _id пользователя
+
+    // Отображаем карточки
+    initialCardsList(cards, userId);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+// Обработчик подтверждения удаления
+confirmButton.addEventListener("click", () => {
+  if (cardToDelete && cardElementToDelete) {
+    deleteCard(cardToDelete)
+      .then(() => {
+        cardElementToDelete.remove();
+        closeModal(popupConfirm);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 });
 
 // Обработчики событий
-
-addButton.addEventListener("click", () => openModal(popupNewCard));
 
 cardForm.addEventListener("submit", addNewCard);
 
 profileForm.addEventListener("submit", editProfile);
 
+// Открытие формы добавления новой карточки
+addButton.addEventListener("click", () => {
+  clearValidation(cardForm, validationConfig);
+  openModal(popupNewCard);
+});
+
+// Открытие формы редактирования профиля
 editButton.addEventListener("click", () => {
   completeForm();
+  clearValidation(profileForm, validationConfig);
   openModal(popupProfile);
 });
 
@@ -112,3 +247,16 @@ document.querySelectorAll(".popup").forEach((popup) => {
       closeModal(popup);
   });
 });
+
+// Настройки для валидации
+const validationConfig = {
+  formSelector: ".popup__form",
+  inputSelector: ".popup__input",
+  submitButtonSelector: ".popup__button",
+  inactiveButtonClass: "popup__button_disabled",
+  inputErrorClass: "popup__input_type_error",
+  errorClass: "popup__error_visible",
+};
+
+// Включаем валидацию для всех форм
+enableValidation(validationConfig);

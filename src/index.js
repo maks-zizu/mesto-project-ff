@@ -198,7 +198,7 @@ Promise.all([getUser(), getInitialCards()])
     profileTitle.textContent = userData.name;
     profileDescription.textContent = userData.about;
     profileImage.style.backgroundImage = `url(${userData.avatar})`;
-    userId = userData._id; // Сохраняем _id пользователя
+    const userId = userData._id; // Сохраняем _id пользователя
 
     // Отображаем карточки
     initialCardsList(cards, userId);

@@ -14,37 +14,34 @@ import {
 // DOM узлы
 
 // card
-export const cardsList = document.querySelector(".places__list");
-export const cardForm = document.forms["new-place"];
+const cardsList = document.querySelector(".places__list");
+const cardForm = document.forms["new-place"];
 
 const placeName = cardForm.elements["place-name"];
 const link = cardForm.elements["link"];
 
-export const addButton = document.querySelector(".profile__add-button");
-export const popupNewCard = document.querySelector(".popup_type_new-card");
+const addButton = document.querySelector(".profile__add-button");
+const popupNewCard = document.querySelector(".popup_type_new-card");
 popupNewCard.classList.add("popup_is-animated");
 
 // image
-export const card = document.querySelector(".card");
-export const popupImage = document.querySelector(".popup_type_image");
+const popupImage = document.querySelector(".popup_type_image");
 popupImage.classList.add("popup_is-animated");
 
 const image = popupImage.querySelector(".popup__image");
 const caption = popupImage.querySelector(".popup__caption");
 
 // forms
-export const profileForm = document.forms["edit-profile"];
-export const saveButton = cardForm.querySelector(".popup__button");
+
+const profileForm = document.forms["edit-profile"];
 
 // profile
-export const profile = document.querySelector(".profile");
-export const popupProfile = document.querySelector(".popup_type_edit");
+const profile = document.querySelector(".profile");
+const popupProfile = document.querySelector(".popup_type_edit");
 popupProfile.classList.add("popup_is-animated");
-export const editButton = document.querySelector(".profile__edit-button");
-export const profileTitle = profile.querySelector(".profile__title");
-export const profileDescription = profile.querySelector(
-  ".profile__description"
-);
+const editButton = document.querySelector(".profile__edit-button");
+const profileTitle = profile.querySelector(".profile__title");
+const profileDescription = profile.querySelector(".profile__description");
 const profileImage = profile.querySelector(".profile__image");
 
 const name = profileForm.elements["name"];
@@ -71,6 +68,7 @@ const renderLoading = (
 
 // Открытие попапа для обновления аватара
 profileImage.addEventListener("click", () => {
+  avatarInput.value = "";
   clearValidation(avatarForm, validationConfig);
   openModal(avatarPopup);
 });
@@ -78,7 +76,8 @@ profileImage.addEventListener("click", () => {
 // Отправка формы для обновления аватара
 avatarForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  renderLoading(true, saveButton);
+  const submitButton = e.submitter;
+  renderLoading(true, submitButton);
   updateAvatar(avatarInput.value)
     .then((data) => {
       profileImage.style.backgroundImage = `url(${data.avatar})`;
@@ -88,7 +87,7 @@ avatarForm.addEventListener("submit", (e) => {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false, saveButton);
+      renderLoading(false, submitButton);
     });
 });
 
@@ -111,11 +110,12 @@ const openDeletePopup = (cardId, cardElement) => {
   openModal(popupConfirm);
 };
 
-// Редактирвоание профиля
+// Редактирование профиля
 
 const editProfile = (e) => {
   e.preventDefault();
-  renderLoading(true, saveButton);
+  const submitButton = e.submitter;
+  renderLoading(true, submitButton);
   const updateProfile = patchUser({
     name: name.value,
     about: description.value,
@@ -130,7 +130,7 @@ const editProfile = (e) => {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false, saveButton);
+      renderLoading(false, submitButton);
     });
 };
 
@@ -141,6 +141,7 @@ const openImage = (e) => {
   if (!e.target.classList.contains("card__image")) return;
   caption.textContent = e.target.alt;
   image.src = e.target.src;
+  image.alt = e.target.alt;
   openModal(popupImage);
 };
 
@@ -148,7 +149,8 @@ const openImage = (e) => {
 
 const addNewCard = (e) => {
   e.preventDefault();
-  renderLoading(true, saveButton);
+  const submitButton = e.submitter;
+  renderLoading(true, submitButton);
   postCard({ name: placeName.value, link: link.value })
     .then((data) => {
       const cardElement = createCard(
@@ -169,7 +171,7 @@ const addNewCard = (e) => {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false, saveButton);
+      renderLoading(false, submitButton);
     });
 };
 
@@ -188,10 +190,8 @@ const initialCardsList = (initialCards, userId) =>
   });
 
 // Инициализация профиля
-let userId = null;
 
 // Загрузка данных пользователя и карточек
-
 Promise.all([getUser(), getInitialCards()])
   .then(([userData, cards]) => {
     // Сохраняем данные пользователя

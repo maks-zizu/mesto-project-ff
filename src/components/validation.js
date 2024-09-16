@@ -65,10 +65,7 @@ export const setEventListeners = (formElement, config) => {
 // Включаем валидацию для всех форм
 export const enableValidation = (config) => {
   const formList = Array.from(document.querySelectorAll(config.formSelector));
-  formList.forEach((formElement) => {
-    formElement.addEventListener("submit", (evt) => evt.preventDefault());
-    setEventListeners(formElement, config);
-  });
+  formList.forEach((formElement) => setEventListeners(formElement, config));
 };
 
 // Очищаем ошибки валидации
